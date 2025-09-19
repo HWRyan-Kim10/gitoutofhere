@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 
 public class MyRepo {
     File repoFolder;
@@ -9,27 +10,62 @@ public class MyRepo {
 
     public MyRepo(String name, boolean shouldIncludeREADME) {
         // Make repo folder
-        new File(name).mkdir();
+        repoFolder = new File(name);
+        if (!doesRepoExist()) {
+            repoFolder.mkdir();
+            // Make readme file if needed
+            if (shouldIncludeREADME) {
+                readme = new File(name + "/README.md");
 
-        // Make readme file if needed
-        if (shouldIncludeREADME) {
-            readme = new File(name + "/README.md");
-
+                try {
+                    readme.createNewFile();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+            // Setup the git folder
             try {
-                readme.createNewFile();
+                setupGitFolder(name);
+                System.out.println("Git Repository Created");
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-        }
-        // Setup the git folder
-        try {
-            setupGitFolder(name);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } else {
+            System.out.println("Git Repository Already Exists");
         }
 
+    }
+
+    private boolean doesRepoExist() {
+        if (!repoFolder.exists()) {
+            return false;
+        }
+        boolean gitFolderExists = false;
+        File[] dirFiles = repoFolder.listFiles();
+        for (File file : dirFiles) {
+            if (file.getName().equals(".git")) {
+                gitFolderExists = true;
+            }
+        }
+        boolean objectsDirectoryExists = false;
+        boolean HEADExists = false;
+        boolean indexExists = false;
+        if (gitFolderExists) {
+            for (File file : new File(repoFolder.getPath() + "/.git").listFiles()) {
+                if (file.getName().equals("objects")) {
+                    objectsDirectoryExists = true;
+                }
+                if (file.getName().equals("HEAD")) {
+                    HEADExists = true;
+                }
+                if (file.getName().equals("index")) {
+                    indexExists = true;
+                }
+            }
+        }
+        return indexExists && HEADExists && objectsDirectoryExists;
     }
 
     private void setupGitFolder(String repoName) throws IOException {
