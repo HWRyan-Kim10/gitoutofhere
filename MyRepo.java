@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 public class MyRepo {
     File repoFolder;
@@ -10,20 +11,138 @@ public class MyRepo {
         // Make repo folder
         new File(name).mkdir();
 
-        // Make hidden .git folder
-        gitFolder = new File(name + "/.git");
-        gitFolder.mkdir();
-
         // Make readme file if needed
-        if (shouldIncludeREADME)
+        if (shouldIncludeREADME) {
             readme = new File(name + "/README.md");
+
+            try {
+                readme.createNewFile();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        // Setup the git folder
         try {
-            readme.createNewFile();
+            setupGitFolder(name);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
+    }
+
+    private void setupGitFolder(String repoName) throws IOException {
+        // Make hidden .git folder
+        gitFolder = new File(repoName + "/.git");
+        gitFolder.mkdir();
+
+        File indexFile = new File(gitFolder.getPath() + "/index");
+        File objectsFolder = new File(gitFolder.getPath() + "/objects/");
+        File HEAD = new File(gitFolder.getPath() + "/HEAD/");
+
+        // make index file
+        indexFile.createNewFile();
+        HEAD.createNewFile();
+        // make objects directory
+        objectsFolder.mkdir();
+    }
+
+    // Main function to search this repo to see if a file exists by name
+    public boolean includesFile(String fileName) {
+        File[] files = repoFolder.listFiles();
+        for (File file : files) {
+            if (!file.isDirectory()) {
+                if (file.getName() == fileName) {
+                    return true;
+                }
+            } else {
+                if (includesFile(fileName, file.getPath())) {
+                    return true;
+                }
+            }
+
+        }
+        return false;
+    }
+
+    // Recursive helper method to check subdirectories for files by name
+    public boolean includesFile(String fileName, String filePath) {
+        File[] files = new File(filePath).listFiles();
+        for (File file : files) {
+            if (!file.isDirectory()) {
+                if (file.getName() == fileName) {
+                    return true;
+                }
+            } else {
+                if (includesFile(fileName, file.getPath()))
+                    return true;
+            }
+
+        }
+        return false;
+    }
+
+    // Main function to find the path of a file in the repo
+    public String findFile(String fileName) {
+        File[] files = repoFolder.listFiles();
+        for (File file : files) {
+            if (!file.isDirectory()) {
+                if (file.getName() == fileName) {
+                    return file.getPath();
+                }
+            } else {
+                return findFile(fileName, file.getPath());
+            }
+
+        }
+        return null;
+    }
+
+    // Recursive helper method to find the path of a file in a subdirectory of the
+    // repo
+    public String findFile(String fileName, String filePath) {
+        File[] files = new File(filePath).listFiles();
+        for (File file : files) {
+            if (!file.isDirectory()) {
+                if (file.getName() == fileName) {
+                    return file.getPath();
+                }
+            } else {
+                return findFile(fileName, file.getPath());
+            }
+
+        }
+        return null;
+    }
+
+    // Removes the specified file in the repo
+    public boolean removeFile(String fileName) {
+        File fileToRemove = new File(findFile(fileName));
+        return fileToRemove.delete();
+    }
+
+    public boolean removeDirectory(String directoryName, String path) {
+        File directoryToRemove = new File(findFile(directoryName));
+        File[] directoryContents = directoryToRemove.listFiles();
+        for (File file : directoryContents) {
+            if (!file.isDirectory()) {
+                file.delete();
+            } else {
+                removeDirectory(directoryName, file.getPath());
+            }
+        }
+        try {
+            return directoryToRemove.delete();
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+        return false;
+
+    }
+
+    public boolean removeDirectory(String directoryName) {
+        return removeDirectory(directoryName, repoFolder.getPath());
     }
 
 }
