@@ -1,9 +1,4 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -43,7 +38,6 @@ public class MyRepo {
 
     }
 
-    // Check if the .git folder exists and has the right files
     private boolean doesRepoExist() {
         if (!repoFolder.exists()) {
             return false;
@@ -74,7 +68,6 @@ public class MyRepo {
         return indexExists && HEADExists && objectsDirectoryExists;
     }
 
-    // Deletes all files and folders in the repo, then deletes the repo folder
     public boolean cleanup() {
         File[] repoContents = repoFolder.listFiles();
         for (File file : repoContents) {
@@ -87,7 +80,6 @@ public class MyRepo {
         return repoFolder.delete();
     }
 
-    // Sets up the .git folder structure
     private void setupGitFolder(String repoName) throws IOException {
         // Make hidden .git folder
         gitFolder = new File(repoName + "/git");
@@ -184,7 +176,6 @@ public class MyRepo {
         return fileToRemove.delete();
     }
 
-    // Removes the directory in the repo and all files in it
     public boolean removeDirectory(String directoryName, String path) {
         File directoryToRemove = new File(path + "/" + directoryName);
         File[] directoryContents = directoryToRemove.listFiles();
@@ -204,40 +195,8 @@ public class MyRepo {
 
     }
 
-    // method to remove directory in the repo by name only
     public boolean removeDirectory(String directoryName) {
         return removeDirectory(directoryName, repoFolder.getPath());
-    }
-
-    public boolean createBlobFile(String fileNameString) {
-        File file = new File(findFile(fileNameString));
-
-        if (file == null || !file.exists() || file.isDirectory()) {
-            return false;
-        }
-        BufferedReader br;
-        try {
-            br = new BufferedReader(new FileReader(file));
-
-            StringBuilder sb = new StringBuilder();
-            while (br.ready()) {
-                sb.append(br.readLine());
-                sb.append("\n");
-            }
-            String fileContents = sb.toString();
-            String sha1 = Sha1Generator.generateSha1(fileContents);
-
-            File blobFile = new File(gitFolder.getPath() + "/objects/" + sha1);
-            blobFile.createNewFile();
-            BufferedWriter bw = new BufferedWriter(new FileWriter(blobFile));
-            bw.write(fileContents);
-            bw.close();
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return false;
-
     }
 
 }
