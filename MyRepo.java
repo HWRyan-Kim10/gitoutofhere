@@ -1,4 +1,8 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -190,6 +194,39 @@ public class MyRepo {
             return directoryToRemove.delete();
         } catch (Exception e) {
             // TODO: handle exception
+        }
+        return false;
+
+    }
+
+    public boolean createBlobFile(String fileNameString) {
+        File file = new File(findFile(fileNameString));
+
+        if (file == null || !file.exists() || file.isDirectory()) {
+            return false;
+        }
+        BufferedReader br;
+        try {
+            br = new BufferedReader(new FileReader(file));
+
+            StringBuilder sb = new StringBuilder();
+            while (br.ready()) {
+                sb.append(br.readLine());
+                sb.append("\n");
+            }
+            br.close();
+            String fileContents = sb.toString();
+            fileContents = Compression.compress(fileContents);
+            String sha1 = Sha1Generator.generateSha1(fileContents);
+
+            File blobFile = new File(gitFolder.getPath() + "/objects/" + sha1);
+            blobFile.createNewFile();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(blobFile));
+            bw.write(fileContents);
+            bw.close();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
         return false;
 

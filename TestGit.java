@@ -1,3 +1,4 @@
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 
@@ -36,15 +37,36 @@ public class TestGit {
             e.printStackTrace();
         }
 
+        try {
+            BufferedWriter bw = new BufferedWriter(new java.io.FileWriter(file2));
+            bw.write("Hello World");
+            bw.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
         System.out.println(repo2.includesFile("file1.txt")); // false
         System.out.println(repo2.includesFile("file2.txt")); // true
 
         System.out.println(repo2.findFile("file1.txt")); // null
         System.out.println(repo2.findFile("file2.txt")); // path to file2.txt
 
-        System.out.println(repo2.removeDirectory(dir2.getName())); // also removes file1.txt using the removeFile
-                                                                   // method,
-                                                                   // so tests that as well
+        // test making a blob file, checking if it exists in objects
+        try {
+            repo2.createBlobFile(file2.getName());
+            File blobFile = new File(repo2.gitFolder.getPath() + "/objects/"
+                    + Sha1Generator.generateSha1(Compression.compress("Hello World\n")));
+            System.out.println(blobFile.exists()); // true
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        System.out.println(repo2.removeDirectory(dir2.getName())); // also removes
+        // file1.txt using the removeFile
+        // method,
+        // so tests that as well
 
         System.out.println(repo2.cleanup());
     }
