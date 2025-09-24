@@ -45,7 +45,7 @@ public class MyRepo {
         boolean gitFolderExists = false;
         File[] dirFiles = repoFolder.listFiles();
         for (File file : dirFiles) {
-            if (file.getName().equals(".git")) {
+            if (file.getName().equals("git")) {
                 gitFolderExists = true;
             }
         }
@@ -53,7 +53,7 @@ public class MyRepo {
         boolean HEADExists = false;
         boolean indexExists = false;
         if (gitFolderExists) {
-            for (File file : new File(repoFolder.getPath() + "/.git").listFiles()) {
+            for (File file : new File(repoFolder.getPath() + "/git").listFiles()) {
                 if (file.getName().equals("objects")) {
                     objectsDirectoryExists = true;
                 }
@@ -68,9 +68,21 @@ public class MyRepo {
         return indexExists && HEADExists && objectsDirectoryExists;
     }
 
+    public boolean cleanup() {
+        File[] repoContents = repoFolder.listFiles();
+        for (File file : repoContents) {
+            if (!file.isDirectory()) {
+                file.delete();
+            } else {
+                removeDirectory(file.getName(), repoFolder.getPath());
+            }
+        }
+        return repoFolder.delete();
+    }
+
     private void setupGitFolder(String repoName) throws IOException {
         // Make hidden .git folder
-        gitFolder = new File(repoName + "/.git");
+        gitFolder = new File(repoName + "/git");
         gitFolder.mkdir();
 
         File indexFile = new File(gitFolder.getPath() + "/index");
@@ -89,7 +101,7 @@ public class MyRepo {
         File[] files = repoFolder.listFiles();
         for (File file : files) {
             if (!file.isDirectory()) {
-                if (file.getName() == fileName) {
+                if (file.getName().equals(fileName)) {
                     return true;
                 }
             } else {
@@ -102,12 +114,12 @@ public class MyRepo {
         return false;
     }
 
-    // Recursive helper method to check subdirectories for files by name
+    // Recursive helper method to check subdirectories for filles by name
     public boolean includesFile(String fileName, String filePath) {
         File[] files = new File(filePath).listFiles();
         for (File file : files) {
             if (!file.isDirectory()) {
-                if (file.getName() == fileName) {
+                if (file.getName().equals(fileName)) {
                     return true;
                 }
             } else {
@@ -124,11 +136,14 @@ public class MyRepo {
         File[] files = repoFolder.listFiles();
         for (File file : files) {
             if (!file.isDirectory()) {
-                if (file.getName() == fileName) {
+                if (file.getName().equals(fileName)) {
                     return file.getPath();
                 }
             } else {
-                return findFile(fileName, file.getPath());
+                String result = findFile(fileName, file.getPath());
+                if (result != null) {
+                    return result;
+                }
             }
 
         }
@@ -141,31 +156,34 @@ public class MyRepo {
         File[] files = new File(filePath).listFiles();
         for (File file : files) {
             if (!file.isDirectory()) {
-                if (file.getName() == fileName) {
+                if (file.getName().equals(fileName)) {
                     return file.getPath();
                 }
             } else {
-                return findFile(fileName, file.getPath());
+                String result = findFile(fileName, file.getPath());
+                if (result != null) {
+                    return result;
+                }
             }
 
         }
         return null;
     }
 
-    // Removes the specified file in the repo
+    // Removes the file in the repo
     public boolean removeFile(String fileName) {
         File fileToRemove = new File(findFile(fileName));
         return fileToRemove.delete();
     }
 
     public boolean removeDirectory(String directoryName, String path) {
-        File directoryToRemove = new File(findFile(directoryName));
+        File directoryToRemove = new File(path + "/" + directoryName);
         File[] directoryContents = directoryToRemove.listFiles();
         for (File file : directoryContents) {
             if (!file.isDirectory()) {
                 file.delete();
             } else {
-                removeDirectory(directoryName, file.getPath());
+                removeDirectory(file.getName(), file.getParent());
             }
         }
         try {
