@@ -12,6 +12,13 @@ public class MyRepo {
     File gitFolder;
     File readme;
 
+    /**
+     * Constructor for creating a new git repository
+     * 
+     * @param name                The name of the repository folder to create
+     * @param shouldIncludeREADME Whether to create a README.md file in the
+     *                            repository
+     */
     public MyRepo(String name, boolean shouldIncludeREADME) {
         // Make repo folder
         repoFolder = new File(name);
@@ -42,6 +49,12 @@ public class MyRepo {
 
     }
 
+    /**
+     * Check if the git repository exists by verifying the git folder structure
+     * 
+     * @return true if the repository exists with proper git structure, otherwise
+     *         false
+     */
     private boolean doesRepoExist() {
         if (!repoFolder.exists()) {
             return false;
@@ -72,6 +85,11 @@ public class MyRepo {
         return indexExists && HEADExists && objectsDirectoryExists;
     }
 
+    /**
+     * Deletes all files and folders in the repo, then deletes the repo folder
+     * 
+     * @return true if cleanup was successful, otherwise false
+     */
     public boolean cleanup() {
         File[] repoContents = repoFolder.listFiles();
         for (File file : repoContents) {
@@ -84,6 +102,12 @@ public class MyRepo {
         return repoFolder.delete();
     }
 
+    /**
+     * Sets up the .git folder structure with index, HEAD, and objects folder
+     * 
+     * @param repoName The name of the repository folder
+     * @throws IOException if files cannot be created
+     */
     private void setupGitFolder(String repoName) throws IOException {
         // Make hidden .git folder
         gitFolder = new File(repoName + "/git");
@@ -100,7 +124,12 @@ public class MyRepo {
         objectsFolder.mkdir();
     }
 
-    // Main function to search this repo to see if a file exists by name
+    /**
+     * Main function to search this repo to see if a file exists by name
+     * 
+     * @param fileName The name of the file to search for
+     * @return true if the file exists in the repository, otherwise false
+     */
     public boolean includesFile(String fileName) {
         File[] files = repoFolder.listFiles();
         for (File file : files) {
@@ -118,7 +147,14 @@ public class MyRepo {
         return false;
     }
 
-    // Recursive helper method to check subdirectories for filles by name
+    /**
+     * Recursive helper method to check subdirectories for files by name
+     * 
+     * @param fileName The name of the file to search for
+     * @param filePath The path of the directory to search in
+     * @return true if the file exists in the specified directory or its
+     *         subdirectories, otherwise false
+     */
     public boolean includesFile(String fileName, String filePath) {
         File[] files = new File(filePath).listFiles();
         for (File file : files) {
@@ -135,7 +171,12 @@ public class MyRepo {
         return false;
     }
 
-    // Main function to find the path of a file in the repo
+    /**
+     * Main function to find the path of a file in the repo
+     * 
+     * @param fileName The name of the file to find
+     * @return The full path to the file if found, null if not found
+     */
     public String findFile(String fileName) {
         File[] files = repoFolder.listFiles();
         for (File file : files) {
@@ -154,8 +195,14 @@ public class MyRepo {
         return null;
     }
 
-    // Recursive helper method to find the path of a file in a subdirectory of the
-    // repo
+    /**
+     * Recursive helper method to find the path of a file in a subdirectory of the
+     * repo
+     * 
+     * @param fileName The name of the file to find
+     * @param filePath The path of the directory to search in
+     * @return The full path to the file if found, null if not found
+     */
     public String findFile(String fileName, String filePath) {
         File[] files = new File(filePath).listFiles();
         for (File file : files) {
@@ -174,12 +221,24 @@ public class MyRepo {
         return null;
     }
 
-    // Removes the file in the repo
+    /**
+     * Removes the file in the repo
+     * 
+     * @param fileName The name of the file to remove
+     * @return true if the file was successfully deleted, otherwise false
+     */
     public boolean removeFile(String fileName) {
         File fileToRemove = new File(findFile(fileName));
         return fileToRemove.delete();
     }
 
+    /**
+     * Removes the directory in the repo and all files in it
+     * 
+     * @param directoryName The name of the directory to remove
+     * @param path          The path where the directory is located
+     * @return true if the directory was successfully deleted, otherwise false
+     */
     public boolean removeDirectory(String directoryName, String path) {
         File directoryToRemove = new File(path + "/" + directoryName);
         File[] directoryContents = directoryToRemove.listFiles();
@@ -199,6 +258,13 @@ public class MyRepo {
 
     }
 
+    /**
+     * Creates a compressed blob file from the specified file and stores it in the
+     * objects folder
+     * 
+     * @param fileNameString The name of the file to create a blob from
+     * @return true if the blob was successfully created, otherwise false
+     */
     public boolean createBlobFile(String fileNameString) {
         File file = new File(findFile(fileNameString));
 
@@ -232,8 +298,53 @@ public class MyRepo {
 
     }
 
+    /**
+     * Adds a file entry to the index with its blob hash
+     * 
+     * @param blobHashString The SHA-1 hash of the blob file
+     * @param fileNameString The name of the file to add to the index
+     * @return true if the file was successfully added to the index, otherwise false
+     */
+    public boolean addFileToIndex(String blobHashString, String fileNameString) {
+        File file = new File(findFile(fileNameString));
+        if (file == null || !file.exists() || file.isDirectory()) {
+            return false;
+        }
+
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(gitFolder.getPath() + "/index", true));
+            bw.write(blobHashString + " " + fileNameString);
+            bw.newLine(); // Use newLine() instead of "\n" for proper line ending
+            bw.close();
+            return true;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Method to remove directory in the repo by name only
+     * 
+     * @param directoryName The name of the directory to remove from the repository
+     * @return true if the directory was successfully deleted,otherwise false
+     */
     public boolean removeDirectory(String directoryName) {
         return removeDirectory(directoryName, repoFolder.getPath());
+    }
+
+    public static void cleanupLocalFiles() {
+        File[] files = new File(".").listFiles();
+        for (File file : files) {
+            if (file.isDirectory() && new File(file.getPath() + "/git").exists()) {
+                MyRepo repo = new MyRepo(file.getName(), false);
+                repo.cleanup();
+            } else if (!file.isDirectory() && !file.getName().endsWith(".java") && !file.getName().equals(".gitignore")
+                    && !file.getName().equals("README.md") && !file.getName().equals("LICENSE.md")) {
+                file.delete();
+            }
+        }
     }
 
 }
