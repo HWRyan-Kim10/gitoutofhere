@@ -11,3 +11,5 @@ Has one function that takes a string and returns its hash as a string
 
 Compression: Taken from //https://stackoverflow.com/questions/16351668/compression-and-decompression-of-string-data-in-java
 Has two functions to compress/decompress strings and returns their compressed/decompressed form as a string.
+
+All files use local path
