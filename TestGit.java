@@ -9,7 +9,7 @@ public class TestGit {
         testBasicRepoOperations();
         testBlobFileCreation();
         testIndexOperations();
-        MyRepo.cleanupLocalFiles();
+        // MyRepo.cleanupLocalFiles();
     }
 
     // Tests basic repository operations including file search and directory removal

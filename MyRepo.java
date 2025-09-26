@@ -313,7 +313,7 @@ public class MyRepo {
 
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(gitFolder.getPath() + "/index", true));
-            bw.write(blobHashString + " " + fileNameString);
+            bw.write(blobHashString + " " + findFile(fileNameString));
             bw.newLine(); // Use newLine() instead of "\n" for proper line ending
             bw.close();
             return true;
