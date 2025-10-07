@@ -347,4 +347,50 @@ public class MyRepo {
         }
     }
 
+
+    public String writeObject(String content) {
+        try {
+            String compressed = Compression.compress(content);
+            String sha1 = Sha1Generator.generateSha1(compressed);
+
+            File objFile = new File(gitFolder, "objects/" + sha1);
+            if (!objFile.exists()) {
+                objFile.createNewFile();
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(objFile))) {
+                    bw.write(compressed);
+                }
+            }
+            return sha1;
+        } catch (Exception e) {
+            throw new RuntimeException("Error writing object", e);
+        }
+    }
+
+    public String createBlobFromFile(File file) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line).append('\n');
+                }
+            }
+
+            String contents = sb.toString();
+            String compressed = Compression.compress(contents);
+            String sha1 = Sha1Generator.generateSha1(compressed);
+
+            File objFile = new File(gitFolder, "objects/" + sha1);
+            if (!objFile.exists()) {
+                objFile.createNewFile();
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(objFile))) {
+                    bw.write(compressed);
+                }
+            }
+            return sha1;
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating blob for file: " + file.getPath(), e);
+        }
+    }
+
 }
