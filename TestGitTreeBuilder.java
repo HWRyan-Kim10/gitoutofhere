@@ -19,21 +19,21 @@ public class TestGitTreeBuilder {
 
         //Make a small folder structure:
         // TreeRepo/
-        //   src/
+        //   main/
         //     a.txt
         //     utils/
         //       b.txt
         //       sub/
         //         c.txt
-        File srcFolder = new File("TreeRepo/src");
-        File utilsFolder = new File("TreeRepo/src/utils");
-        File subFolder = new File("TreeRepo/src/utils/sub");
+        File mainFolder = new File("TreeRepo/main");
+        File utilsFolder = new File("TreeRepo/main/utils");
+        File subFolder = new File("TreeRepo/main/utils/sub");
 
-        srcFolder.mkdirs();
+        mainFolder.mkdirs();
         utilsFolder.mkdirs();
         subFolder.mkdirs();
 
-        File fileA = new File(srcFolder, "a.txt");
+        File fileA = new File(mainFolder, "a.txt");
         File fileB = new File(utilsFolder, "b.txt");
         File fileC = new File(subFolder, "c.txt");
 
@@ -60,13 +60,13 @@ public class TestGitTreeBuilder {
             return;
         }
 
-        // 3) Build a tree for the "src" directory
-        System.out.println("Building Git tree for 'src'");
+        //Build a tree for the "main" directory
+        System.out.println("Building Git tree for 'main'");
         GitTreeBuilder treeBuilder = new GitTreeBuilder(repository);
-        String mainTreeHash = treeBuilder.addDirectory("src");
+        String mainTreeHash = treeBuilder.addDirectory("main");
         System.out.println("Tree hash created: " + mainTreeHash);
 
-        // 4) Display the contents of git/index
+        //Display the contents of git/index
         System.out.println("\n--- git/index contents ---");
         File indexFile = new File(repository.gitFolder, "index");
         if (indexFile.exists()) {
@@ -86,7 +86,7 @@ public class TestGitTreeBuilder {
             System.out.println("(Index file not found)");
         }
 
-        // 5) Check if all expected object files exist
+        //Check if all expected object files exist
         System.out.println("\nVerify created objects in git/objects");
         try {
             // Builder reads each line and adds a newline at the end
@@ -112,10 +112,10 @@ public class TestGitTreeBuilder {
             e.printStackTrace();
         }
 
-        // 6) Cleanup (delete repo and files)
+        //Cleanup (delete repo and files)
         System.out.println("\nCleaning up repository");
-        boolean removedSrcFolder = repository.removeDirectory("src");
-        System.out.println("Removed src folder: " + removedSrcFolder);
+        boolean removedMainFolder = repository.removeDirectory("main");
+        System.out.println("Removed main folder: " + removedMainFolder);
         boolean repoCleaned = repository.cleanup();
         System.out.println("Repository cleanup complete: " + repoCleaned);
 
